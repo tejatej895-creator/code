@@ -1,0 +1,16 @@
+'%run ../variables'
+
+
+##create function
+def write_into_uc(df , mode , format ,overwriteSchema, path)
+    df.write.mode(mode)\
+    .format(format)\
+    .option('overwriteSchema' , overwriteSchema)\
+    .option("delta.universalFormat.enabledFormats" , "true")\
+    .option("delta.columnMapping.mode" , "name")\
+    .option("delta.enableIcebergCompatV2" , "iceberg")\
+    .saveAsTable(path)
+
+##write_into_uc (df,overwrite,delta,true,xxx)
+
+ 
