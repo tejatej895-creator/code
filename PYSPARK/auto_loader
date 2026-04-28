@@ -1,0 +1,42 @@
+--PYSPARK 
+
+spark.readStream
+.format("cloudFiles")
+.option("cloudFiles.format" , "json")
+.option("cloudFiles.schemalocation" , "path")
+.load("path")
+
+.writeStream.option("checkpointlocation" , "path")
+.trigger(processingTime = "5 seconds")
+.toTable("c.d.t")
+
+--SQL
+
+CREATE OR REFRESH STREAMING TABLE TB1 
+SCHEDULE EVERY 1 HOUR 
+AS SELECT * FROM STREAM read_files(path , format)
+
+
+We start with .readStream and set the format to "cloudFiles", which enables Auto Loader.
+Then, we specify the file format as JSON, and define the schema location using cloudFiles.schemaLocation, which is used to track schema inference and evolution.
+Next, we use .load() to point to the location of the files, in this case a path under /Volumes referencing Unity Catalog.
+On the write side, we configure .writeStream with a checkpoint location to maintain state and progress, and set a trigger interval of every 5 seconds.
+Finally, we use .toTable() to write the data into a Delta table specified by catalog, database, and table name.
+
+--SQL ADDING metadata columns to tables from src 
+
+_metadata.file_name 
+_metadata.file_ingestion_time
+
+--PYSPARK ADDING metadata columns to tables from src 
+
+df = spark.read.format("parquet").load("path)
+df = df.withColumn('file_name', col(_metadata.file_name)) 
+
+DIFFERENT MODES 
+1.Permissive 
+2.DROPMALFORMED
+3.Failfast
+
+df
+.option("mode", "DROPMALFORMED") 
