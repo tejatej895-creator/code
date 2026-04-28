@@ -1,0 +1,10 @@
+##SCD-1 
+
+UPDATE tgt t
+set 
+
+select * from src s
+join tgt t
+on s.id = t.id 
+u
+
