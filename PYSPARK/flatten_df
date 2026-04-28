@@ -1,0 +1,55 @@
+import pyspark.sql.functions as F
+from pyspark.sql.types import StructType, MapType, ArrayType
+
+def flatten_df(df):
+    """
+    Flattens a PySpark DataFrame by one level.
+    - Expands StructType columns into individual columns.
+    - Explodes MapType columns into `_key` and `_value` columns, creating new rows.
+    - Keeps all other column types as they are.
+
+    :param df: A PySpark DataFrame with potentially nested data.
+    :return: A new, flattened PySpark DataFrame.
+    """
+    # --- Step 1: Explode any MapType columns first ---
+    # This is done first because exploding adds new rows, fundamentally changing the DataFrame's structure.
+    map_cols = [field.name for field in df.schema.fields if isinstance(field.dataType, MapType)]
+
+    for col_name in map_cols:
+        # Convert map to an array of structs [ {key, value}, {key, value} ]
+        # and then explode it. This creates a new row for each key-value pair.
+        df = df.withColumn(
+            col_name,
+            F.explode_outer(
+                F.arrays_zip(F.map_keys(F.col(col_name)), F.map_values(F.col(col_name)))
+            )
+        )
+        # Create two new columns for the key and value from the exploded struct
+        df = df.withColumn(f"{col_name}_key", F.col(f"{col_name}.0"))
+        df = df.withColumn(f"{col_name}_value", F.col(f"{col_name}.1"))
+        # Drop the intermediate column that held the exploded struct
+        df = df.drop(col_name)
+
+    # --- Step 2: Build the list of final columns to select ---
+    # This list will contain expressions to select simple columns and expand struct columns.
+    flat_cols = []
+    
+    # Iterate through the columns of the (potentially exploded) DataFrame
+    for field in df.schema.fields:
+        col_name = field.name
+        col_type = field.dataType
+
+        if isinstance(col_type, StructType):
+            # If the column is a struct, expand its fields
+            for sub_field in col_type.fields:
+                sub_name = sub_field.name
+                # Create an alias for the flattened column (e.g., "address.city" -> "address_city")
+                flat_cols.append(F.col(f"`{col_name}`.`{sub_name}`").alias(f"{col_name}_{sub_name}"))
+        else:
+            # If it's not a struct (i.e., it's a simple type or one of our new _key/_value cols),
+            # just add it to the selection list.
+            flat_cols.append(F.col(f"`{col_name}`"))
+
+    # --- Step 3: Select the columns to create the final flat DataFrame ---
+    return df.select(flat_cols)
+
