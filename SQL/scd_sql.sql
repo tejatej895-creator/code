@@ -12,7 +12,9 @@ INSERT (ID , VALUE)
 VALUES (SRC.ID , SRC.VALUE)
 
 
---SCD 2 SQL
+
+
+-----------------------------SCD 2 SQL------------------------
 
 with cte as (
 ---brings only changed records----
@@ -47,9 +49,7 @@ SELECT
    values (c.empid ,c.empname , c.salary , 1 , GETDATE() , '9999-12-31' );
 
 
-
-
-try :
+-----------------ENDDD-------------------
  
 
 
