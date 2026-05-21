@@ -1,0 +1,14 @@
+Spark : open source technology, in memory processing, faster executions ,structured,semi, un structured ,4 languages
+RDD :   RDD stands for resilient distributed datasets it is an fundamental Data structure
+        of an apache spark.
+        They are fault tolerant, means they can recover from node failure
+
+narrow transformations :data stays in the same partition and faster no i/o 
+        filter, where , select , union , withcolumn , drop 
+ 
+wide transformations : requires data shuffling acrosss partiotions and slower due to high i/o 
+        groupbuy , orderby ,distinct , joins , repartitioning
+
+lazy evaluation : spark wont execute transformations instantly , it prepares logical execution plan (DAG)  that plans the sequence of actions to be done
+
+PAIR RDD : key value pair 

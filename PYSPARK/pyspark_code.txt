@@ -13,4 +13,12 @@ def write_into_uc(df , mode , format ,overwriteSchema, path)
 
 ##write_into_uc (df,overwrite,delta,true,xxx)
 
+
+try :
+   df=df.spark.read
+
+except Exception as e :
+    print('error')
+    raise e 
+
  
